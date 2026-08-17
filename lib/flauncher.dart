@@ -190,6 +190,9 @@ class _FLauncherState extends State<FLauncher> {
       fit: StackFit.expand,
       children: [
         background,
+        // Uniform 30% dark layer over the background (user request) — keeps
+        // aerial/video wallpapers readable behind the app grid.
+        const ColoredBox(color: Color(0x4D000000)), // black @ 30%
         DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(

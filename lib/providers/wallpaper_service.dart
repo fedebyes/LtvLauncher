@@ -19,6 +19,7 @@
 import 'dart:io';
 import 'dart:async';
 
+import 'package:flauncher/aerial_clips.dart';
 import 'package:flauncher/flauncher_channel.dart';
 import 'package:flauncher/gradients.dart';
 import 'package:flauncher/providers/settings_service.dart';
@@ -81,6 +82,7 @@ class WallpaperService extends ChangeNotifier {
   void dispose() {
     _settingsService.removeListener(_onSettingsChanged);
     _timer?.cancel();
+    _aerialRotationTimer?.cancel();
     super.dispose();
   }
 
@@ -97,6 +99,7 @@ class WallpaperService extends ChangeNotifier {
     await _updateWallpaper();
     _updateTimerState();
     _initialized = true;
+    _startAerialRotation();
   }
 
   void _updateTimerState() {
@@ -195,13 +198,35 @@ class WallpaperService extends ChangeNotifier {
   Future<void> setAerialWallpaper(String assetPath) async {
     await _settingsService.setAerialWallpaperAsset(assetPath);
     _version++;
+    _startAerialRotation();
     notifyListeners();
   }
 
   Future<void> clearAerialWallpaper() async {
     await _settingsService.setAerialWallpaperAsset(null);
     _version++;
+    _aerialRotationTimer?.cancel();
+    _aerialRotationTimer = null;
     notifyListeners();
+  }
+
+  /// Aerial Views-style automatic rotation: every [aerialRotationInterval]
+  /// the wallpaper advances to the next bundled clip.
+  Timer? _aerialRotationTimer;
+
+  void _startAerialRotation() {
+    _aerialRotationTimer?.cancel();
+    final current = _settingsService.aerialWallpaperAsset;
+    if (current == null) {
+      _aerialRotationTimer = null;
+      return;
+    }
+    var index = aerialClips.indexWhere((c) => c.$1 == current);
+    if (index < 0) index = 0;
+    _aerialRotationTimer = Timer.periodic(aerialRotationInterval, (_) {
+      index = (index + 1) % aerialClips.length;
+      setAerialWallpaper(aerialClips[index].$1);
+    });
   }
 
   Future<void> _pickAndSave(File targetFile) async {

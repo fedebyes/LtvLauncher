@@ -22,17 +22,10 @@ import 'package:flauncher/widgets/settings/focusable_settings_tile.dart';
 import 'package:flauncher/widgets/settings/gradient_panel_page.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flauncher/aerial_clips.dart';
 import 'package:flauncher/l10n/app_localizations.dart';
 
 import 'package:flauncher/widgets/rounded_switch_list_tile.dart';
-
-/// Aerial wallpaper clips bundled in the app (assets/aerial/), played
-/// directly from the APK — self-contained, no network. 720p H.264 Main.
-const List<(String, String)> _aerialClips = [
-  ('assets/aerial/aerial_1.mp4', 'Aerial — Beach'),
-  ('assets/aerial/aerial_2.mp4', 'Aerial — City'),
-  ('assets/aerial/aerial_3.mp4', 'Aerial — Winter'),
-];
 
 class WallpaperPanelPage extends StatelessWidget {
   static const String routeName = "wallpaper_panel";
@@ -108,7 +101,7 @@ class WallpaperPanelPage extends StatelessWidget {
           ),
           const Divider(),
           Text(localizations.aerial, style: Theme.of(context).textTheme.titleMedium),
-          for (final clip in _aerialClips)
+          for (final clip in aerialClips)
             FocusableSettingsTile(
               leading: Icon(Icons.landscape_outlined),
               title: Text(clip.$2, style: Theme.of(context).textTheme.bodyMedium),
