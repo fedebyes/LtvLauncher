@@ -14,6 +14,38 @@
 
 This customized version introduces usability enhancements and some UX improvements by [LeanBitLab](https://github.com/leanbitlab-org).
 
+> **This repository is the `fedebyes` custom fork** (Mi Box S — armeabi-v7a, Android 9).
+> Custom features:
+> - **Aerial wallpapers by default** — auto-rotating video backgrounds (every 5 min) from the open-source Aerial Views library: Apple / Amazon / Jetson Creative / Robin Fourcade (289 videos, 1080p variants) or 3 bundled offline clips (Beach / City / Winter). Pick a source in *Settings → Wallpaper → Aerial*.
+> - **Animated gradient** default background (slow drift), also shown while a video loads; 50% dark overlay for readability.
+> - **Continue Watching row fixed** — upstream shipped a broken Watch Next query (`DESC LIMIT 20`) and poster fetching via `ContentResolver` on `http(s)` URLs; both fixed.
+> - **Notification badges count ongoing notifications** (e.g. Spotify while playing).
+> - **Grid-only layout**: TV + non-TV apps merged under **Apps**; **Favorites** (Jellyfin, SmartTube, Prime Video, LTvLauncher) on top.
+
+## Install (sideload)
+
+The release APK targets **armeabi-v7a** (32-bit) — check your device first:
+
+```bash
+adb shell getprop ro.product.cpu.abi   # must show armeabi-v7a (or armeabi)
+```
+
+Install over adb (WiFi or USB). With USB debugging enabled:
+
+```bash
+adb connect <box-ip>:5555              # adb over WiFi (optional)
+adb install -r app-armeabi-v7a-release.apk
+```
+
+Notes:
+- Same package id as upstream LTv (`com.leanbitlab.ltvL`) → **upgrades in place**, keeping HOME-default and granted permissions.
+- First launch auto-selects the Amazon aerial set; press HOME and pick *LTvLauncher* → *Always* if the chooser appears.
+- For the Continue Watching row to show, grant the TV listings permission:
+  ```bash
+  adb shell pm grant com.leanbitlab.ltvL android.permission.READ_TV_LISTINGS
+  ```
+- Release APKs are signed with the project's upload keystore. If you previously installed a debug-signed build you must `adb uninstall com.leanbitlab.ltvL` first (signature change), then install the release APK.
+
 <a href="https://github.com/leanbitlab-org/LtvLauncher/releases/latest">
   <img alt="Get it on GitHub" src=".github/assets/get_it_on_github.png" height="65">
 </a>
