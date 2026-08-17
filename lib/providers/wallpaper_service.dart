@@ -23,7 +23,6 @@ import 'package:flauncher/flauncher_channel.dart';
 import 'package:flauncher/gradients.dart';
 import 'package:flauncher/providers/settings_service.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -185,14 +184,20 @@ class WallpaperService extends ChangeNotifier {
     await _pickAndSaveVideo(_wallpaperNightVideoFile);
   }
 
-  /// Copies a bundled aerial clip (Flutter asset) into the video wallpaper file.
-  Future<void> setAerialWallpaper(String assetPath) async {
-    final data = await rootBundle.load(assetPath);
-    final writeStream = _wallpaperVideoFile.openWrite();
-    writeStream.add(data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
-    await writeStream.close();
+  /// Streaming aerial wallpaper: stores the clip URL; the home plays it
+  /// over the network (LAN server on Asus). No local copy.
+  String? get aerialVideoUrl => _settingsService.aerialWallpaperUrl;
+
+  Future<void> setAerialWallpaper(String url) async {
+    await _settingsService.setAerialWallpaperUrl(url);
     _version++;
-    await _updateWallpaper(force: true);
+    notifyListeners();
+  }
+
+  Future<void> clearAerialWallpaper() async {
+    await _settingsService.setAerialWallpaperUrl(null);
+    _version++;
+    notifyListeners();
   }
 
   Future<void> _pickAndSave(File targetFile) async {

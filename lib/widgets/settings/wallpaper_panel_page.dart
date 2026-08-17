@@ -26,12 +26,13 @@ import 'package:flauncher/l10n/app_localizations.dart';
 
 import 'package:flauncher/widgets/rounded_switch_list_tile.dart';
 
-/// Bundled aerial wallpaper clips (CC0) selectable from the wallpaper panel.
-/// Keep each clip small (<10MB) — video wallpapers are loaded into RAM.
+/// Aerial wallpaper clips streamed from the Asus LAN server (see
+/// ~/srv/aerial + systemd --user aerial-http.service on Asus).
+/// Each clip is 720p H.264 <10MB; streamed, not bundled.
 const List<(String, String)> _aerialClips = [
-  ('assets/aerial/aerial_1.mp4', 'Aerial — Beach'),
-  ('assets/aerial/aerial_2.mp4', 'Aerial — City'),
-  ('assets/aerial/aerial_3.mp4', 'Aerial — Winter'),
+  ('http://192.168.1.13:8900/aerial_1.mp4', 'Aerial — Beach'),
+  ('http://192.168.1.13:8900/aerial_2.mp4', 'Aerial — City'),
+  ('http://192.168.1.13:8900/aerial_3.mp4', 'Aerial — Winter'),
 ];
 
 class WallpaperPanelPage extends StatelessWidget {
@@ -116,6 +117,13 @@ class WallpaperPanelPage extends StatelessWidget {
                 await context.read<WallpaperService>().setAerialWallpaper(clip.$1);
               },
             ),
+          FocusableSettingsTile(
+            leading: Icon(Icons.stop_circle_outlined),
+            title: Text('Clear aerial (gradient)', style: Theme.of(context).textTheme.bodyMedium),
+            onPressed: () async {
+              await context.read<WallpaperService>().clearAerialWallpaper();
+            },
+          ),
         ],
     );
   }

@@ -22,6 +22,7 @@ import 'package:flauncher/custom_traversal_policy.dart';
 import 'package:flauncher/providers/apps_service.dart';
 import 'package:flauncher/providers/launcher_state.dart';
 import 'package:flauncher/providers/wallpaper_service.dart';
+import 'package:flauncher/widgets/animated_gradient_background.dart';
 import 'package:flauncher/widgets/wallpaper_video_background.dart';
 import 'package:flauncher/widgets/apps_grid.dart';
 import 'package:flauncher/widgets/category_row.dart';
@@ -155,15 +156,20 @@ class _FLauncherState extends State<FLauncher> {
 
   Widget _wallpaper(BuildContext context, WallpaperService wallpaperService) {
     Widget background;
+    final videoUrl = wallpaperService.aerialVideoUrl;
     final videoFile = wallpaperService.wallpaperVideoFile;
-    if (videoFile != null) {
-      // Gradient under the video: if the decoder can't play the file the
-      // widget renders transparent and the gradient shows instead of black.
+    if (videoUrl != null || videoFile != null) {
+      // Animated gradient under the video: while the clip streams/loads (or if
+      // the decoder fails) the home shows a moving gradient, never black.
       background = Stack(
         fit: StackFit.expand,
         children: [
-          Container(key: const Key("background"), decoration: BoxDecoration(gradient: wallpaperService.gradient.gradient)),
-          WallpaperVideoBackground(file: videoFile, key: Key("background_video_${wallpaperService.version}")),
+          AnimatedGradientBackground(key: const Key("background_animated"), gradient: wallpaperService.gradient.gradient),
+          WallpaperVideoBackground(
+            url: videoUrl,
+            file: videoFile,
+            key: Key("background_video_${wallpaperService.version}"),
+          ),
         ],
       );
     } else if (wallpaperService.wallpaper != null) {

@@ -24,9 +24,10 @@ import 'package:video_player/video_player.dart';
 /// Plays a video file as the launcher home background (loop, muted).
 /// Ported from Arc Launcher (meddouribadis/arclauncher), GPL-3.0.
 class WallpaperVideoBackground extends StatefulWidget {
-  final File file;
+  final File? file;
+  final String? url;
 
-  const WallpaperVideoBackground({super.key, required this.file});
+  const WallpaperVideoBackground({super.key, this.file, this.url});
 
   @override
   State<WallpaperVideoBackground> createState() => _WallpaperVideoBackgroundState();
@@ -46,14 +47,23 @@ class _WallpaperVideoBackgroundState extends State<WallpaperVideoBackground>
   @override
   void didUpdateWidget(WallpaperVideoBackground oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.file.path != widget.file.path) {
+    final oldSource = oldWidget.url ?? oldWidget.file?.path;
+    final newSource = widget.url ?? widget.file?.path;
+    if (oldSource != newSource) {
       _disposeController();
       _initController();
     }
   }
 
   void _initController() {
-    final controller = VideoPlayerController.file(widget.file);
+    final VideoPlayerController controller;
+    if (widget.url != null) {
+      controller = VideoPlayerController.networkUrl(Uri.parse(widget.url!));
+    } else if (widget.file != null) {
+      controller = VideoPlayerController.file(widget.file!);
+    } else {
+      return;
+    }
     _controller = controller;
     controller.initialize().then((_) {
       if (!mounted || _controller != controller) {
