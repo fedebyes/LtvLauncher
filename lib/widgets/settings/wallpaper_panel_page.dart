@@ -29,9 +29,9 @@ import 'package:flauncher/widgets/rounded_switch_list_tile.dart';
 /// Bundled aerial wallpaper clips (CC0) selectable from the wallpaper panel.
 /// Keep each clip small (<10MB) — video wallpapers are loaded into RAM.
 const List<(String, String)> _aerialClips = [
-  ('assets/aerial/aerial_1.mp4', 'Aerial — Bay'),
-  ('assets/aerial/aerial_2.mp4', 'Aerial — Coast'),
-  ('assets/aerial/aerial_3.mp4', 'Aerial — Desert'),
+  ('assets/aerial/aerial_1.mp4', 'Aerial — Beach'),
+  ('assets/aerial/aerial_2.mp4', 'Aerial — City'),
+  ('assets/aerial/aerial_3.mp4', 'Aerial — Winter'),
 ];
 
 class WallpaperPanelPage extends StatelessWidget {
