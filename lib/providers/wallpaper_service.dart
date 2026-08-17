@@ -25,6 +25,7 @@ import 'package:flauncher/flauncher_channel.dart';
 import 'package:flauncher/gradients.dart';
 import 'package:flauncher/providers/settings_service.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -229,16 +230,17 @@ class WallpaperService extends ChangeNotifier {
   File? _remoteCacheFile;
 
   static const Map<String, (String, String)> _aerialManifests = {
-    // Aerial Views open-source manifests (bundled in the AerialViews APK).
-    'apple': ('https://raw.githubusercontent.com/theothernt/AerialViews/master/app/src/main/res/raw/tvos26.json', 'url-1080-H264'), // Apple (139)
-    'amazon': ('https://raw.githubusercontent.com/theothernt/AerialViews/master/app/src/main/res/raw/fireos8.json', 'url-1080-SDR'), // Amazon Fire TV (112)
-    'jetson': ('https://raw.githubusercontent.com/theothernt/AerialViews/master/app/src/main/res/raw/comm1.json', 'url-1080-H264'), // Jetson Creative (20)
-    'robin': ('https://raw.githubusercontent.com/theothernt/AerialViews/master/app/src/main/res/raw/comm2.json', 'url-1080-H264'), // Robin Fourcade (~20)
+    // Aerial Views open-source manifests, bundled in the APK (like the
+    // original app does) — no network needed for the video list.
+    'apple': ('assets/manifests/tvos26.json', 'url-1080-H264'), // Apple (139)
+    'amazon': ('assets/manifests/fireos8.json', 'url-1080-SDR'), // Amazon Fire TV (112)
+    'jetson': ('assets/manifests/comm1.json', 'url-1080-H264'), // Jetson Creative (20)
+    'robin': ('assets/manifests/comm2.json', 'url-1080-H264'), // Robin Fourcade (18)
   };
 
-  /// Fetches one source set ('apple' | 'amazon' | 'jetson' | 'robin' | 'all')
-  /// at 1080p "low quality" variants, caches the URL list, and starts
-  /// rotating through only that set.
+  /// Loads one source set ('apple' | 'amazon' | 'jetson' | 'robin' | 'all')
+  /// from the bundled manifests at 1080p "low quality" variants, caches the
+  /// URL list, and starts rotating through only that set.
   Future<int> fetchAerialLibrary(String sourceKey) async {
     final urls = <String>{};
     for (final entry in _aerialManifests.entries) {
@@ -256,15 +258,9 @@ class WallpaperService extends ChangeNotifier {
     return _remoteAerialUrls.length;
   }
 
-  Future<List<String>> _fetchManifest1080p(String manifestUrl, String urlKey) async {
-    final client = HttpClient();
+  Future<List<String>> _fetchManifest1080p(String assetPath, String urlKey) async {
     try {
-      final request = await client
-          .getUrl(Uri.parse(manifestUrl))
-          .timeout(const Duration(seconds: 20));
-      final response = await request.close().timeout(const Duration(seconds: 20));
-      if (response.statusCode != 200) return const [];
-      final body = await response.transform(utf8.decoder).join();
+      final body = await rootBundle.loadString(assetPath);
       final data = jsonDecode(body);
       final assets = (data is Map ? data['assets'] : null);
       if (assets is! List) return const [];
@@ -282,8 +278,6 @@ class WallpaperService extends ChangeNotifier {
       return out;
     } catch (_) {
       return const [];
-    } finally {
-      client.close();
     }
   }
 

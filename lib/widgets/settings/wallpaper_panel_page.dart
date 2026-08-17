@@ -123,7 +123,7 @@ class WallpaperPanelPage extends StatelessWidget {
                     duration: const Duration(seconds: 4),
                     content: Text(count > 0
                         ? '${source.$2}: $count videos (1080p) — rotating every 5 min'
-                        : 'Fetch failed — check network'),
+                        : 'No videos found'),
                   ),
                 );
               },
