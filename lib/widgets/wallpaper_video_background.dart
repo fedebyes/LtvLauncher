@@ -102,7 +102,9 @@ class _WallpaperVideoBackgroundState extends State<WallpaperVideoBackground>
   Widget build(BuildContext context) {
     final controller = _controller;
     if (controller == null || !controller.value.isInitialized) {
-      return const ColoredBox(color: Colors.black);
+      // Transparent until ready — lets the launcher gradient show through
+      // instead of a black screen when the decoder can't play the file.
+      return const SizedBox.shrink();
     }
 
     final size = controller.value.size;

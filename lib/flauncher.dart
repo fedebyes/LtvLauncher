@@ -157,7 +157,15 @@ class _FLauncherState extends State<FLauncher> {
     Widget background;
     final videoFile = wallpaperService.wallpaperVideoFile;
     if (videoFile != null) {
-      background = WallpaperVideoBackground(file: videoFile, key: Key("background_video_${wallpaperService.version}"));
+      // Gradient under the video: if the decoder can't play the file the
+      // widget renders transparent and the gradient shows instead of black.
+      background = Stack(
+        fit: StackFit.expand,
+        children: [
+          Container(key: const Key("background"), decoration: BoxDecoration(gradient: wallpaperService.gradient.gradient)),
+          WallpaperVideoBackground(file: videoFile, key: Key("background_video_${wallpaperService.version}")),
+        ],
+      );
     } else if (wallpaperService.wallpaper != null) {
       final physicalSize = MediaQuery.sizeOf(context);
       background = Image(

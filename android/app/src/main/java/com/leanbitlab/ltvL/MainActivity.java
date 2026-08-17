@@ -1124,7 +1124,7 @@ public class MainActivity extends FlutterActivity {
                 projection,
                 null,
                 null,
-                TvContract.WatchNextPrograms.COLUMN_LAST_ENGAGEMENT_TIME_UTC_MILLIS + " DESC LIMIT 20"
+                TvContract.WatchNextPrograms.COLUMN_LAST_ENGAGEMENT_TIME_UTC_MILLIS + " DESC"
             );
 
             if (cursor != null) {
