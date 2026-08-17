@@ -42,11 +42,14 @@ class WallpaperService extends ChangeNotifier {
   int _version = 0;
   int _updateWallpaperCallCount = 0;
   bool _lastVideoActive = false;
+  bool _initialized = false;
 
   ImageProvider?  get wallpaper     => _wallpaper;
   int             get version       => _version;
+  bool            get isInitialized => _initialized;
 
   File? get wallpaperVideoFile {
+    if (!isInitialized) return null; // late fields not set yet
     final f = _resolveActiveVideoFile();
     return (f != null && f.existsSync()) ? f : null;
   }
@@ -93,6 +96,7 @@ class WallpaperService extends ChangeNotifier {
     _lastTimeBasedEnabled = _settingsService.timeBasedWallpaperEnabled;
     await _updateWallpaper();
     _updateTimerState();
+    _initialized = true;
   }
 
   void _updateTimerState() {
@@ -140,6 +144,7 @@ class WallpaperService extends ChangeNotifier {
   }
 
   File? _resolveActiveVideoFile() {
+    if (!isInitialized) return null;
     final now = DateTime.now();
     final isDay = now.hour >= 6 && now.hour < 18;
     final enabled = _settingsService.timeBasedWallpaperEnabled;

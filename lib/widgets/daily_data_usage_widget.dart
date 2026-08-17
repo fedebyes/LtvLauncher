@@ -12,11 +12,9 @@ class DailyDataUsageWidget extends StatelessWidget {
     return Consumer2<NetworkService, SettingsService>(
       builder: (context, networkService, settingsService, _) {
         if (!networkService.hasUsageStatsPermission) {
-          return TextButton.icon(
-             icon: const Icon(Icons.data_usage, size: 20),
-             label: const Text("Grant Usage Permission"),
-             onPressed: () => networkService.requestPermission(),
-          );
+          // Usage access removed from the fork — render nothing instead of
+          // prompting (user keeps the data widget off).
+          return const SizedBox.shrink();
         }
 
         final period = settingsService.dataUsagePeriod;
