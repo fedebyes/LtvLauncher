@@ -183,9 +183,12 @@ class _FLauncherState extends State<FLauncher> {
         height: physicalSize.height,
         width: physicalSize.width
       );
-    }
-    else {
-      background = Container(key: const Key("background"), decoration: BoxDecoration(gradient: wallpaperService.gradient.gradient));
+    } else {
+      // Default background: the launcher gradient, animated (slow drift).
+      background = AnimatedGradientBackground(
+        key: const Key("background_animated"),
+        gradient: wallpaperService.gradient.gradient,
+      );
     }
 
     return Stack(

@@ -103,6 +103,10 @@ class WallpaperService extends ChangeNotifier {
     _updateTimerState();
     _initialized = true;
     _startAerialRotation();
+    if (!_settingsService.hasAerialWallpaperChoice()) {
+      // First run: default to the Amazon aerial set (mp4, reliable).
+      fetchAerialLibrary('amazon');
+    }
   }
 
   void _updateTimerState() {

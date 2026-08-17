@@ -343,6 +343,11 @@ class SettingsService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// True only when the user has made an explicit aerial choice (selected or
+  /// cleared); the fork auto-defaults to an aerial set only before that.
+  bool hasAerialWallpaperChoice() =>
+      _sharedPreferences.containsKey(_aerialWallpaperAssetKey);
+
   Future<void> setShowNotificationsWidgetInStatusBar(bool show) async {
     await _sharedPreferences.setBool(_showNotificationsWidgetInStatusBarKey, show);
     _showNotificationsWidgetInStatusBar = show;
