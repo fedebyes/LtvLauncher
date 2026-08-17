@@ -26,6 +26,14 @@ import 'package:flauncher/l10n/app_localizations.dart';
 
 import 'package:flauncher/widgets/rounded_switch_list_tile.dart';
 
+/// Bundled aerial wallpaper clips (CC0) selectable from the wallpaper panel.
+/// Keep each clip small (<10MB) — video wallpapers are loaded into RAM.
+const List<(String, String)> _aerialClips = [
+  ('assets/aerial/aerial_1.mp4', 'Aerial — Bay'),
+  ('assets/aerial/aerial_2.mp4', 'Aerial — Coast'),
+  ('assets/aerial/aerial_3.mp4', 'Aerial — Desert'),
+];
+
 class WallpaperPanelPage extends StatelessWidget {
   static const String routeName = "wallpaper_panel";
 
@@ -62,6 +70,16 @@ class WallpaperPanelPage extends StatelessWidget {
                       title: Text(localizations.pickNightWallpaper),
                       onPressed: () => _pickWallpaper(context, (s) => s.pickWallpaperNight(), localizations),
                     ),
+                    FocusableSettingsTile(
+                      leading: Icon(Icons.wb_sunny),
+                      title: Text(localizations.pickDayVideoWallpaper),
+                      onPressed: () => _pickWallpaper(context, (s) => s.pickVideoWallpaperDay(), localizations),
+                    ),
+                    FocusableSettingsTile(
+                      leading: Icon(Icons.videocam_outlined),
+                      title: Text(localizations.pickNightVideoWallpaper),
+                      onPressed: () => _pickWallpaper(context, (s) => s.pickVideoWallpaperNight(), localizations),
+                    ),
                   ],
                 );
               } else {
@@ -78,11 +96,26 @@ class WallpaperPanelPage extends StatelessWidget {
                       title: Text(localizations.picture, style: Theme.of(context).textTheme.bodyMedium),
                       onPressed: () => _pickWallpaper(context, (s) => s.pickWallpaper(), localizations),
                     ),
+                    FocusableSettingsTile(
+                      leading: Icon(Icons.videocam_outlined),
+                      title: Text(localizations.video, style: Theme.of(context).textTheme.bodyMedium),
+                      onPressed: () => _pickWallpaper(context, (s) => s.pickVideoWallpaper(), localizations),
+                    ),
                   ],
                 );
               }
             }
           ),
+          const Divider(),
+          Text(localizations.aerial, style: Theme.of(context).textTheme.titleMedium),
+          for (final clip in _aerialClips)
+            FocusableSettingsTile(
+              leading: Icon(Icons.landscape_outlined),
+              title: Text(clip.$2, style: Theme.of(context).textTheme.bodyMedium),
+              onPressed: () async {
+                await context.read<WallpaperService>().setAerialWallpaper(clip.$1);
+              },
+            ),
         ],
     );
   }

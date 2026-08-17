@@ -64,6 +64,10 @@
     "open": "Abrir",
     "orSelectFormatSpecifiers": "O seleccione especificadores de formato",
     "picture": "Imagen",
+    "video": "Vídeo",
+    "aerial": "Fondos de pantalla aéreos",
+    "pickDayVideoWallpaper": "Elegir vídeo de fondo de día",
+    "pickNightVideoWallpaper": "Elegir vídeo de fondo de noche",
     "removeFrom": "Eliminar de {name}",
     "@removeFrom": {
         "placeholders": {

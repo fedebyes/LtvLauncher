@@ -64,6 +64,10 @@
     "open": "Open",
     "orSelectFormatSpecifiers": "Or select format specifiers",
     "picture": "Picture",
+    "video": "Video",
+    "aerial": "Aerial wallpapers",
+    "pickDayVideoWallpaper": "Pick day video wallpaper",
+    "pickNightVideoWallpaper": "Pick night video wallpaper",
     "removeFrom": "Remove from {name}",
     "@removeFrom": {
         "placeholders": {

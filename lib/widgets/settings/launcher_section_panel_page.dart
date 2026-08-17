@@ -339,7 +339,7 @@ class _CategorySettingsState extends State<_CategorySettings>
   _CategorySettingsState():
         _ignoreTextFieldKeyEvent = false,
         _categorySort = Category.Sort,
-        _categoryType = Category.Type,
+        _categoryType = CategoryType.grid,
         _columnsCount = Category.ColumnsCount,
         _rowHeight = Category.RowHeight,
         _name = "",
@@ -363,7 +363,7 @@ class _CategorySettingsState extends State<_CategorySettings>
     if (!_creating) {
       _name = _category!.name;
       _categorySort = _category!.sort;
-      _categoryType = _category!.type;
+      _categoryType = CategoryType.grid;
       _columnsCount = _category!.columnsCount;
       _rowHeight = _category!.rowHeight;
     } else {
@@ -523,10 +523,6 @@ class _CategorySettingsState extends State<_CategorySettings>
               isDense: true,
               isExpanded: true,
               items: [
-                DropdownMenuItem(
-                  value: CategoryType.row,
-                  child: Text(localizations.row, style: Theme.of(context).textTheme.bodySmall)
-                ),
                 DropdownMenuItem(
                   value: CategoryType.grid,
                   child: Text(localizations.grid, style: Theme.of(context).textTheme.bodySmall)

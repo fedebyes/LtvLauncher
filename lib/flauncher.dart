@@ -22,6 +22,7 @@ import 'package:flauncher/custom_traversal_policy.dart';
 import 'package:flauncher/providers/apps_service.dart';
 import 'package:flauncher/providers/launcher_state.dart';
 import 'package:flauncher/providers/wallpaper_service.dart';
+import 'package:flauncher/widgets/wallpaper_video_background.dart';
 import 'package:flauncher/widgets/apps_grid.dart';
 import 'package:flauncher/widgets/category_row.dart';
 import 'package:flauncher/widgets/launcher_alternative_view.dart';
@@ -154,7 +155,10 @@ class _FLauncherState extends State<FLauncher> {
 
   Widget _wallpaper(BuildContext context, WallpaperService wallpaperService) {
     Widget background;
-    if (wallpaperService.wallpaper != null) {
+    final videoFile = wallpaperService.wallpaperVideoFile;
+    if (videoFile != null) {
+      background = WallpaperVideoBackground(file: videoFile, key: Key("background_video_${wallpaperService.version}"));
+    } else if (wallpaperService.wallpaper != null) {
       final physicalSize = MediaQuery.sizeOf(context);
       background = Image(
         image: wallpaperService.wallpaper!,

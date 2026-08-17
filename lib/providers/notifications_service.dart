@@ -133,9 +133,7 @@ class NotificationsService extends ChangeNotifier with WidgetsBindingObserver {
         } else {
           final notification = NotificationItem.fromMap(item);
           newNotifications.add(notification);
-          if (notification.isClearable) {
-            newCounts[pkg] = (newCounts[pkg] ?? 0) + 1;
-          }
+          newCounts[pkg] = (newCounts[pkg] ?? 0) + 1;
         }
       }
     }
