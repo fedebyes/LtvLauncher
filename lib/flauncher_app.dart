@@ -95,7 +95,7 @@ class FLauncherApp extends StatelessWidget
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               )
           ),
-          dialogTheme: DialogTheme(
+          dialogTheme: DialogThemeData(
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             backgroundColor: const Color(0xFF1E1E1E),
             titleTextStyle: Typography.material2018().white.titleLarge,
