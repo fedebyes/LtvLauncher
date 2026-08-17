@@ -228,19 +228,22 @@ class WallpaperService extends ChangeNotifier {
 
   File? _remoteCacheFile;
 
-  static const List<(String, String)> _aerialManifests = [
-    ('https://raw.githubusercontent.com/theothernt/AerialViews/master/app/src/main/res/raw/tvos26.json', 'url-1080-H264'), // Apple
-    ('https://raw.githubusercontent.com/theothernt/AerialViews/master/app/src/main/res/raw/fireos8.json', 'url-1080-SDR'), // Amazon
-    ('https://raw.githubusercontent.com/theothernt/AerialViews/master/app/src/main/res/raw/comm1.json', 'url-1080-H264'), // Jetson Creative
-    ('https://raw.githubusercontent.com/theothernt/AerialViews/master/app/src/main/res/raw/comm2.json', 'url-1080-H264'), // Robin Fourcade
-  ];
+  static const Map<String, (String, String)> _aerialManifests = {
+    // Aerial Views open-source manifests (bundled in the AerialViews APK).
+    'apple': ('https://raw.githubusercontent.com/theothernt/AerialViews/master/app/src/main/res/raw/tvos26.json', 'url-1080-H264'), // Apple (139)
+    'amazon': ('https://raw.githubusercontent.com/theothernt/AerialViews/master/app/src/main/res/raw/fireos8.json', 'url-1080-SDR'), // Amazon Fire TV (112)
+    'jetson': ('https://raw.githubusercontent.com/theothernt/AerialViews/master/app/src/main/res/raw/comm1.json', 'url-1080-H264'), // Jetson Creative (20)
+    'robin': ('https://raw.githubusercontent.com/theothernt/AerialViews/master/app/src/main/res/raw/comm2.json', 'url-1080-H264'), // Robin Fourcade (~20)
+  };
 
-  /// Fetches the Aerial Views video manifests (4 open sources, 1080p "low
-  /// quality" variants), caches the URL list, and starts rotating through it.
-  Future<int> fetchAerialLibrary() async {
+  /// Fetches one source set ('apple' | 'amazon' | 'jetson' | 'robin' | 'all')
+  /// at 1080p "low quality" variants, caches the URL list, and starts
+  /// rotating through only that set.
+  Future<int> fetchAerialLibrary(String sourceKey) async {
     final urls = <String>{};
-    for (final (manifestUrl, key) in _aerialManifests) {
-      final fetched = await _fetchManifest1080p(manifestUrl, key);
+    for (final entry in _aerialManifests.entries) {
+      if (sourceKey != 'all' && entry.key != sourceKey) continue;
+      final fetched = await _fetchManifest1080p(entry.value.$1, entry.value.$2);
       urls.addAll(fetched);
     }
     _remoteAerialUrls

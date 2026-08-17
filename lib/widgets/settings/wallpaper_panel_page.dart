@@ -27,6 +27,16 @@ import 'package:flauncher/l10n/app_localizations.dart';
 
 import 'package:flauncher/widgets/rounded_switch_list_tile.dart';
 
+/// Remote aerial source sets selectable from the wallpaper panel.
+/// (key, label, icon)
+const List<(String, String, IconData)> _aerialSources = [
+  ('apple', 'Auto aerial — Apple', Icons.apple),
+  ('amazon', 'Auto aerial — Amazon', Icons.cloud_outlined),
+  ('jetson', 'Auto aerial — Jetson Creative', Icons.landscape_outlined),
+  ('robin', 'Auto aerial — Robin Fourcade', Icons.photo_library_outlined),
+  ('all', 'Auto aerial — All sources', Icons.cloud_download_outlined),
+];
+
 class WallpaperPanelPage extends StatelessWidget {
   static const String routeName = "wallpaper_panel";
 
@@ -101,22 +111,23 @@ class WallpaperPanelPage extends StatelessWidget {
           ),
           const Divider(),
           Text(localizations.aerial, style: Theme.of(context).textTheme.titleMedium),
-          FocusableSettingsTile(
-            leading: Icon(Icons.cloud_download_outlined),
-            title: Text('Auto aerial — fetch library (Aerial Views)', style: Theme.of(context).textTheme.bodyMedium),
-            onPressed: () async {
-              final service = context.read<WallpaperService>();
-              final count = await service.fetchAerialLibrary();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  duration: const Duration(seconds: 4),
-                  content: Text(count > 0
-                      ? 'Aerial library: $count videos (1080p) — rotating'
-                      : 'Fetch failed — check network'),
-                ),
-              );
-            },
-          ),
+          for (final source in _aerialSources)
+            FocusableSettingsTile(
+              leading: Icon(source.$3),
+              title: Text(source.$2, style: Theme.of(context).textTheme.bodyMedium),
+              onPressed: () async {
+                final service = context.read<WallpaperService>();
+                final count = await service.fetchAerialLibrary(source.$1);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    duration: const Duration(seconds: 4),
+                    content: Text(count > 0
+                        ? '${source.$2}: $count videos (1080p) — rotating every 5 min'
+                        : 'Fetch failed — check network'),
+                  ),
+                );
+              },
+            ),
           for (final clip in aerialClips)
             FocusableSettingsTile(
               leading: Icon(Icons.landscape_outlined),
