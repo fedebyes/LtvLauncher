@@ -184,18 +184,17 @@ class WallpaperService extends ChangeNotifier {
     await _pickAndSaveVideo(_wallpaperNightVideoFile);
   }
 
-  /// Streaming aerial wallpaper: stores the clip URL; the home plays it
-  /// over the network (LAN server on Asus). No local copy.
-  String? get aerialVideoUrl => _settingsService.aerialWallpaperUrl;
+  /// Aerial wallpaper from bundled assets — self-contained, no network.
+  String? get aerialAssetPath => _settingsService.aerialWallpaperAsset;
 
-  Future<void> setAerialWallpaper(String url) async {
-    await _settingsService.setAerialWallpaperUrl(url);
+  Future<void> setAerialWallpaper(String assetPath) async {
+    await _settingsService.setAerialWallpaperAsset(assetPath);
     _version++;
     notifyListeners();
   }
 
   Future<void> clearAerialWallpaper() async {
-    await _settingsService.setAerialWallpaperUrl(null);
+    await _settingsService.setAerialWallpaperAsset(null);
     _version++;
     notifyListeners();
   }

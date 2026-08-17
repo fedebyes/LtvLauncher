@@ -25,9 +25,9 @@ import 'package:video_player/video_player.dart';
 /// Ported from Arc Launcher (meddouribadis/arclauncher), GPL-3.0.
 class WallpaperVideoBackground extends StatefulWidget {
   final File? file;
-  final String? url;
+  final String? asset;
 
-  const WallpaperVideoBackground({super.key, this.file, this.url});
+  const WallpaperVideoBackground({super.key, this.file, this.asset});
 
   @override
   State<WallpaperVideoBackground> createState() => _WallpaperVideoBackgroundState();
@@ -47,8 +47,8 @@ class _WallpaperVideoBackgroundState extends State<WallpaperVideoBackground>
   @override
   void didUpdateWidget(WallpaperVideoBackground oldWidget) {
     super.didUpdateWidget(oldWidget);
-    final oldSource = oldWidget.url ?? oldWidget.file?.path;
-    final newSource = widget.url ?? widget.file?.path;
+    final oldSource = oldWidget.asset ?? oldWidget.file?.path;
+    final newSource = widget.asset ?? widget.file?.path;
     if (oldSource != newSource) {
       _disposeController();
       _initController();
@@ -57,8 +57,8 @@ class _WallpaperVideoBackgroundState extends State<WallpaperVideoBackground>
 
   void _initController() {
     final VideoPlayerController controller;
-    if (widget.url != null) {
-      controller = VideoPlayerController.networkUrl(Uri.parse(widget.url!));
+    if (widget.asset != null) {
+      controller = VideoPlayerController.asset(widget.asset!);
     } else if (widget.file != null) {
       controller = VideoPlayerController.file(widget.file!);
     } else {

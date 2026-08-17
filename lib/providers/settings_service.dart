@@ -330,16 +330,16 @@ class SettingsService extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Fork: streaming aerial wallpaper URL (empty = none).
-  static const String _aerialWallpaperUrlKey = "aerial_wallpaper_url";
+  // Fork: aerial wallpaper played from the app's bundled assets (empty = none).
+  static const String _aerialWallpaperAssetKey = "aerial_wallpaper_asset";
 
-  String? get aerialWallpaperUrl {
-    final url = _sharedPreferences.getString(_aerialWallpaperUrlKey);
-    return (url == null || url.isEmpty) ? null : url;
+  String? get aerialWallpaperAsset {
+    final asset = _sharedPreferences.getString(_aerialWallpaperAssetKey);
+    return (asset == null || asset.isEmpty) ? null : asset;
   }
 
-  Future<void> setAerialWallpaperUrl(String? url) async {
-    await _sharedPreferences.setString(_aerialWallpaperUrlKey, url ?? "");
+  Future<void> setAerialWallpaperAsset(String? asset) async {
+    await _sharedPreferences.setString(_aerialWallpaperAssetKey, asset ?? "");
     notifyListeners();
   }
 
