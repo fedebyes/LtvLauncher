@@ -105,6 +105,8 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             if (hasKeystore) {
                 signingConfig signingConfigs.release
+            } else {
+                signingConfig signingConfigs.debug
             }
             ndk {
                 abiFilters 'armeabi-v7a', 'arm64-v8a'
