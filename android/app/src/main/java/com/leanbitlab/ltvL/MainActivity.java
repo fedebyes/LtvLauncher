@@ -168,7 +168,14 @@ public class MainActivity extends FlutterActivity {
                 case "getWatchNextPrograms" -> result.success(getWatchNextPrograms());
                 case "getWatchNextPoster" -> {
                     String posterArtUri = call.argument("posterArtUri");
-                    result.success(getWatchNextPoster(posterArtUri));
+                    // Fetch on a background thread so slow CDNs don't block
+                    // the platform/UI thread; post the result back on main.
+                    final MethodChannel.Result posterResult = result;
+                    new Thread(() -> {
+                        byte[] bytes = getWatchNextPoster(posterArtUri);
+                        new android.os.Handler(android.os.Looper.getMainLooper())
+                            .post(() -> posterResult.success(bytes));
+                    }).start();
                 }
                 case "launchWatchNextProgram" -> {
                     String intentUri = call.argument("intentUri");
@@ -1156,19 +1163,49 @@ public class MainActivity extends FlutterActivity {
         }
         try {
             Uri uri = Uri.parse(posterArtUri);
-            try (java.io.InputStream inputStream = getContentResolver().openInputStream(uri)) {
-                if (inputStream != null) {
-                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                    byte[] buffer = new byte[4096];
-                    int bytesRead;
-                    while ((bytesRead = inputStream.read(buffer)) != -1) {
-                        outputStream.write(buffer, 0, bytesRead);
+            String scheme = uri.getScheme();
+            if ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) {
+                // Remote posters (Jellyfin/YouTube/RaiPlay): ContentResolver
+                // can't open arbitrary URLs — fetch over HTTP.
+                java.net.HttpURLConnection connection =
+                    (java.net.HttpURLConnection) new java.net.URL(posterArtUri).openConnection();
+                connection.setConnectTimeout(8000);
+                connection.setReadTimeout(8000);
+                connection.setInstanceFollowRedirects(true);
+                connection.setRequestProperty("User-Agent", "Mozilla/5.0");
+                try {
+                    int code = connection.getResponseCode();
+                    if (code != 200) {
+                        return null;
                     }
-                    return outputStream.toByteArray();
+                    try (java.io.InputStream inputStream = connection.getInputStream()) {
+                        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                        byte[] buffer = new byte[4096];
+                        int bytesRead;
+                        while ((bytesRead = inputStream.read(buffer)) != -1) {
+                            outputStream.write(buffer, 0, bytesRead);
+                        }
+                        return outputStream.toByteArray();
+                    }
+                } finally {
+                    connection.disconnect();
+                }
+            } else {
+                try (java.io.InputStream inputStream = getContentResolver().openInputStream(uri)) {
+                    if (inputStream != null) {
+                        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                        byte[] buffer = new byte[4096];
+                        int bytesRead;
+                        while ((bytesRead = inputStream.read(buffer)) != -1) {
+                            outputStream.write(buffer, 0, bytesRead);
+                        }
+                        return outputStream.toByteArray();
+                    }
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            // Poster fetch is best-effort — log, don't crash.
+            android.util.Log.w("MainActivity", "poster fetch failed: " + posterArtUri);
         }
         return null;
     }
