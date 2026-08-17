@@ -125,7 +125,7 @@ class NetworkService extends ChangeNotifier with WidgetsBindingObserver
   }
 
   Future<void> requestPermission() async {
-    await _channel.requestUsageStatsPermission();
+    // Usage access removed from the fork (data widget stays off) — no-op.
   }
 
   // Call this when app resumes

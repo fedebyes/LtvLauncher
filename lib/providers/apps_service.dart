@@ -234,32 +234,35 @@ class AppsService extends ChangeNotifier {
   }
 
   Future<void> _initDefaultCategories() {
-    final tvApplications = _applications.values
-        .where((application) => application.sideloaded == false);
-    final nonTvApplications = _applications.values
-        .where((application) => application.sideloaded == true);
+    const favoritePackages = {
+      'org.jellyfin.androidtv',
+      'org.smarttube.stable',
+      'com.amazon.amazonvideo.livingroom',
+      'com.leanbitlab.ltvL',
+    };
+    final favorites = _applications.values
+        .where((application) => favoritePackages.contains(application.packageName));
 
     return _database.transaction(() async {
-      if (nonTvApplications.isNotEmpty) {
-        int categoryId = await addCategory(
-          "Non-TV Apps",
-          shouldNotifyListeners: false,
-        );
-        Category nonTvAppsCategory = _categoriesById[categoryId]!;
-        await addAllToCategory(nonTvApplications, nonTvAppsCategory,
-            shouldNotifyListeners: false);
-      }
+      // Favorites first -> order 0 (top of home), grid, pre-populated.
+      int favId = await addCategory(
+        "Favorites",
+        type: CategoryType.grid,
+        shouldNotifyListeners: false,
+      );
+      Category favoritesCategory = _categoriesById[favId]!;
+      await addAllToCategory(favorites, favoritesCategory,
+          shouldNotifyListeners: false);
 
-      if (tvApplications.isNotEmpty) {
-        int categoryId = await addCategory("TV Apps",
-            type: CategoryType.grid, shouldNotifyListeners: false);
-
-        Category tvAppsCategory = _categoriesById[categoryId]!;
-        await addAllToCategory(tvApplications, tvAppsCategory,
-            shouldNotifyListeners: false);
-      }
-
-      await addCategory("Favorites", shouldNotifyListeners: false);
+      // Apps: ALL apps (TV + non-TV merged) in one grid.
+      int appsId = await addCategory(
+        "Apps",
+        type: CategoryType.grid,
+        shouldNotifyListeners: false,
+      );
+      Category appsCategory = _categoriesById[appsId]!;
+      await addAllToCategory(_applications.values, appsCategory,
+          shouldNotifyListeners: false);
     });
   }
 
@@ -378,8 +381,8 @@ class AppsService extends ChangeNotifier {
   }
 
   /// Finds the appropriate category for a newly installed app.
-  /// Returns "TV Apps" for TV apps, "Non-TV Apps" for sideloaded apps,
-  /// or falls back to first non-Favorites category if defaults don't exist.
+  /// The fork merges TV and non-TV apps into one "Apps" category, so every
+  /// new app lands there (fallback: first non-Favorites category).
   Category? _findTargetCategoryForNewApp(bool isSideloaded) {
     if (_categoriesById.isEmpty) return null;
 
@@ -398,8 +401,7 @@ class AppsService extends ChangeNotifier {
       }
     }
 
-    final targetName = isSideloaded ? "non-tv apps" : "tv apps";
-    return _categoriesByNameCache![targetName] ?? _fallbackCategoryCache;
+    return _categoriesByNameCache!['apps'] ?? _fallbackCategoryCache;
   }
 
   Future<Uint8List> getAppBanner(String packageName) async {
