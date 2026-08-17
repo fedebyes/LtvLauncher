@@ -101,6 +101,22 @@ class WallpaperPanelPage extends StatelessWidget {
           ),
           const Divider(),
           Text(localizations.aerial, style: Theme.of(context).textTheme.titleMedium),
+          FocusableSettingsTile(
+            leading: Icon(Icons.cloud_download_outlined),
+            title: Text('Auto aerial — fetch library (Aerial Views)', style: Theme.of(context).textTheme.bodyMedium),
+            onPressed: () async {
+              final service = context.read<WallpaperService>();
+              final count = await service.fetchAerialLibrary();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  duration: const Duration(seconds: 4),
+                  content: Text(count > 0
+                      ? 'Aerial library: $count videos (1080p) — rotating'
+                      : 'Fetch failed — check network'),
+                ),
+              );
+            },
+          ),
           for (final clip in aerialClips)
             FocusableSettingsTile(
               leading: Icon(Icons.landscape_outlined),

@@ -18,6 +18,7 @@
 
 import 'dart:io';
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flauncher/aerial_clips.dart';
 import 'package:flauncher/flauncher_channel.dart';
@@ -96,6 +97,7 @@ class WallpaperService extends ChangeNotifier {
     _wallpaperNightVideoFile = File("${directory.path}/wallpaper_night_video");
 
     _lastTimeBasedEnabled = _settingsService.timeBasedWallpaperEnabled;
+    await _loadRemoteCache();
     await _updateWallpaper();
     _updateTimerState();
     _initialized = true;
@@ -192,11 +194,20 @@ class WallpaperService extends ChangeNotifier {
     await _pickAndSaveVideo(_wallpaperNightVideoFile);
   }
 
-  /// Aerial wallpaper from bundled assets — self-contained, no network.
-  String? get aerialAssetPath => _settingsService.aerialWallpaperAsset;
+  /// Aerial wallpaper source: a bundled asset path ('assets/...') or a
+  /// remote URL ('http...') fetched from the Aerial Views library.
+  String? get aerialAssetPath {
+    final s = _settingsService.aerialWallpaperAsset;
+    return (s != null && s.startsWith('assets/')) ? s : null;
+  }
 
-  Future<void> setAerialWallpaper(String assetPath) async {
-    await _settingsService.setAerialWallpaperAsset(assetPath);
+  String? get aerialVideoUrl {
+    final s = _settingsService.aerialWallpaperAsset;
+    return (s != null && s.startsWith('http')) ? s : null;
+  }
+
+  Future<void> setAerialWallpaper(String source) async {
+    await _settingsService.setAerialWallpaperAsset(source);
     _version++;
     _startAerialRotation();
     notifyListeners();
@@ -210,8 +221,95 @@ class WallpaperService extends ChangeNotifier {
     notifyListeners();
   }
 
+  // --- Aerial Views-style remote library (auto-fetch) ---
+
+  final List<String> _remoteAerialUrls = [];
+  int get remoteAerialCount => _remoteAerialUrls.length;
+
+  File? _remoteCacheFile;
+
+  static const List<(String, String)> _aerialManifests = [
+    ('https://raw.githubusercontent.com/theothernt/AerialViews/master/app/src/main/res/raw/tvos26.json', 'url-1080-H264'), // Apple
+    ('https://raw.githubusercontent.com/theothernt/AerialViews/master/app/src/main/res/raw/fireos8.json', 'url-1080-SDR'), // Amazon
+    ('https://raw.githubusercontent.com/theothernt/AerialViews/master/app/src/main/res/raw/comm1.json', 'url-1080-H264'), // Jetson Creative
+    ('https://raw.githubusercontent.com/theothernt/AerialViews/master/app/src/main/res/raw/comm2.json', 'url-1080-H264'), // Robin Fourcade
+  ];
+
+  /// Fetches the Aerial Views video manifests (4 open sources, 1080p "low
+  /// quality" variants), caches the URL list, and starts rotating through it.
+  Future<int> fetchAerialLibrary() async {
+    final urls = <String>{};
+    for (final (manifestUrl, key) in _aerialManifests) {
+      final fetched = await _fetchManifest1080p(manifestUrl, key);
+      urls.addAll(fetched);
+    }
+    _remoteAerialUrls
+      ..clear()
+      ..addAll(urls);
+    await _saveRemoteCache();
+    if (_remoteAerialUrls.isNotEmpty) {
+      await setAerialWallpaper(_remoteAerialUrls.first);
+    }
+    return _remoteAerialUrls.length;
+  }
+
+  Future<List<String>> _fetchManifest1080p(String manifestUrl, String urlKey) async {
+    final client = HttpClient();
+    try {
+      final request = await client
+          .getUrl(Uri.parse(manifestUrl))
+          .timeout(const Duration(seconds: 20));
+      final response = await request.close().timeout(const Duration(seconds: 20));
+      if (response.statusCode != 200) return const [];
+      final body = await response.transform(utf8.decoder).join();
+      final data = jsonDecode(body);
+      final assets = (data is Map ? data['assets'] : null);
+      if (assets is! List) return const [];
+      final out = <String>[];
+      for (final asset in assets) {
+        if (asset is! Map) continue;
+        final v = asset[urlKey];
+        if (v is String && v.isNotEmpty) {
+          // Apple's CDN cert is invalid — Aerial Views plays it over http.
+          out.add(v.startsWith('https://sylvan.apple.com')
+              ? v.replaceFirst('https://', 'http://')
+              : v);
+        }
+      }
+      return out;
+    } catch (_) {
+      return const [];
+    } finally {
+      client.close();
+    }
+  }
+
+  Future<void> _loadRemoteCache() async {
+    final dir = await getApplicationDocumentsDirectory();
+    _remoteCacheFile = File('${dir.path}/aerial_library.json');
+    try {
+      if (!await _remoteCacheFile!.exists()) return;
+      final data = jsonDecode(await _remoteCacheFile!.readAsString());
+      if (data is List) {
+        _remoteAerialUrls
+          ..clear()
+          ..addAll(data.whereType<String>());
+      }
+    } catch (_) {
+      // Corrupt cache — ignore, will refetch.
+    }
+  }
+
+  Future<void> _saveRemoteCache() async {
+    try {
+      await _remoteCacheFile?.writeAsString(jsonEncode(_remoteAerialUrls));
+    } catch (_) {
+      // Non-fatal.
+    }
+  }
+
   /// Aerial Views-style automatic rotation: every [aerialRotationInterval]
-  /// the wallpaper advances to the next bundled clip.
+  /// the wallpaper advances to the next clip (remote library or bundled).
   Timer? _aerialRotationTimer;
 
   void _startAerialRotation() {
@@ -221,11 +319,19 @@ class WallpaperService extends ChangeNotifier {
       _aerialRotationTimer = null;
       return;
     }
-    var index = aerialClips.indexWhere((c) => c.$1 == current);
+    final bool remote = current.startsWith('http');
+    final List<String> list = remote
+        ? List.of(_remoteAerialUrls)
+        : aerialClips.map((c) => c.$1).toList();
+    if (list.isEmpty) {
+      _aerialRotationTimer = null;
+      return;
+    }
+    var index = list.indexOf(current);
     if (index < 0) index = 0;
     _aerialRotationTimer = Timer.periodic(aerialRotationInterval, (_) {
-      index = (index + 1) % aerialClips.length;
-      setAerialWallpaper(aerialClips[index].$1);
+      index = (index + 1) % list.length;
+      setAerialWallpaper(list[index]);
     });
   }
 

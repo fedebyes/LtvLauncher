@@ -156,9 +156,10 @@ class _FLauncherState extends State<FLauncher> {
 
   Widget _wallpaper(BuildContext context, WallpaperService wallpaperService) {
     Widget background;
+    final aerialUrl = wallpaperService.aerialVideoUrl;
     final aerialAsset = wallpaperService.aerialAssetPath;
     final videoFile = wallpaperService.wallpaperVideoFile;
-    if (aerialAsset != null || videoFile != null) {
+    if (aerialUrl != null || aerialAsset != null || videoFile != null) {
       // Animated gradient under the video: while the clip loads (or if
       // the decoder fails) the home shows a moving gradient, never black.
       background = Stack(
@@ -166,6 +167,7 @@ class _FLauncherState extends State<FLauncher> {
         children: [
           AnimatedGradientBackground(key: const Key("background_animated"), gradient: wallpaperService.gradient.gradient),
           WallpaperVideoBackground(
+            url: aerialUrl,
             asset: aerialAsset,
             file: videoFile,
             key: Key("background_video_${wallpaperService.version}"),
@@ -190,9 +192,9 @@ class _FLauncherState extends State<FLauncher> {
       fit: StackFit.expand,
       children: [
         background,
-        // Uniform 30% dark layer over the background (user request) — keeps
+        // Uniform 50% dark layer over the background (user request) — keeps
         // aerial/video wallpapers readable behind the app grid.
-        const ColoredBox(color: Color(0x4D000000)), // black @ 30%
+        const ColoredBox(color: Color(0x80000000)), // black @ 50%
         DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
