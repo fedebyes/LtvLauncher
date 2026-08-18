@@ -104,8 +104,8 @@ class WallpaperService extends ChangeNotifier {
     _initialized = true;
     _startAerialRotation();
     if (!_settingsService.hasAerialWallpaperChoice()) {
-      // First run: default to the Amazon aerial set (mp4, reliable).
-      fetchAerialLibrary('amazon');
+      // First run: default to the bundled 720p set (offline, light on RAM).
+      setAerialWallpaper(aerialClips.first.$1);
     }
   }
 

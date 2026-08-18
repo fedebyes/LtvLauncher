@@ -111,6 +111,20 @@ class WallpaperPanelPage extends StatelessWidget {
           ),
           const Divider(),
           Text(localizations.aerial, style: Theme.of(context).textTheme.titleMedium),
+          FocusableSettingsTile(
+            leading: Icon(Icons.landscape_outlined),
+            title: Text('Offline aerial — 720p (${aerialClips.length} clips)', style: Theme.of(context).textTheme.bodyMedium),
+            onPressed: () async {
+              final service = context.read<WallpaperService>();
+              await service.setAerialWallpaper(aerialClips.first.$1);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  duration: const Duration(seconds: 3),
+                  content: Text('Offline 720p set — ${aerialClips.length} clips, rotating every 5 min'),
+                ),
+              );
+            },
+          ),
           for (final source in _aerialSources)
             FocusableSettingsTile(
               leading: Icon(source.$3),
@@ -126,14 +140,6 @@ class WallpaperPanelPage extends StatelessWidget {
                         : 'No videos found'),
                   ),
                 );
-              },
-            ),
-          for (final clip in aerialClips)
-            FocusableSettingsTile(
-              leading: Icon(Icons.landscape_outlined),
-              title: Text(clip.$2, style: Theme.of(context).textTheme.bodyMedium),
-              onPressed: () async {
-                await context.read<WallpaperService>().setAerialWallpaper(clip.$1);
               },
             ),
           FocusableSettingsTile(

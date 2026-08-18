@@ -17,12 +17,21 @@
  */
 
 /// Aerial wallpaper clips bundled in the app (assets/aerial/), played
-/// directly from the APK — self-contained, no network. 720p H.264 Main.
-/// Rotated automatically when an aerial wallpaper is selected.
+/// directly from the APK — self-contained, no network. All 720p H.264 Main
+/// (light on the box's RAM/decoder). Rotated automatically when an aerial
+/// wallpaper is selected.
 const List<(String, String)> aerialClips = [
-  ('assets/aerial/aerial_1.mp4', 'Aerial — Beach'),
-  ('assets/aerial/aerial_2.mp4', 'Aerial — City'),
-  ('assets/aerial/aerial_3.mp4', 'Aerial — Winter'),
+  ('assets/aerial/aerial_1.mp4', 'Beach — Inasa'),
+  ('assets/aerial/aerial_2.mp4', 'City — Hudson Yards'),
+  ('assets/aerial/aerial_3.mp4', 'Winter — Park City'),
+  ('assets/aerial/aerial_4.mp4', 'Las Vegas'),
+  ('assets/aerial/aerial_5.mp4', 'Lone Ranch Beach'),
+  ('assets/aerial/aerial_6.mp4', 'Big Sur'),
+  ('assets/aerial/aerial_7.mp4', 'London'),
+  ('assets/aerial/aerial_8.mp4', 'San Francisco'),
+  ('assets/aerial/aerial_9.mp4', 'Coral Reef'),
+  ('assets/aerial/aerial_10.mp4', 'Piton des Neiges'),
+  ('assets/aerial/aerial_11.mp4', 'Sea of Clouds'),
 ];
 
 /// How often the aerial wallpaper advances to the next clip.
