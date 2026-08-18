@@ -16,6 +16,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 /// Subtly animated version of the launcher gradient — a slow drift of the
@@ -30,16 +32,25 @@ class AnimatedGradientBackground extends StatefulWidget {
   State<AnimatedGradientBackground> createState() => _AnimatedGradientBackgroundState();
 }
 
-class _AnimatedGradientBackgroundState extends State<AnimatedGradientBackground>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
-    vsync: this,
-    duration: const Duration(seconds: 8),
-  )..repeat(reverse: true);
+class _AnimatedGradientBackgroundState extends State<AnimatedGradientBackground> {
+  double _t = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Low-frequency update (~8fps): the drift is deliberately slow, and a
+    // vsync 60fps rebuild of the whole gradient burned a full core on the
+    // Mi Box (launcher at 53% CPU). A Timer at 120ms is visually identical
+    // for an 8s ambient loop and ~10x cheaper.
+    _timer = Timer.periodic(const Duration(milliseconds: 120), (_) {
+      setState(() => _t = (_t + 0.0145) % 1.0); // ~8.3s full cycle
+    });
+  }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _timer?.cancel();
     super.dispose();
   }
 
@@ -47,30 +58,26 @@ class _AnimatedGradientBackgroundState extends State<AnimatedGradientBackground>
   Widget build(BuildContext context) {
     final colors = widget.gradient.colors;
     final linear = widget.gradient is LinearGradient ? widget.gradient as LinearGradient : null;
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, _) {
-        final t = _controller.value; // 0..1
-        final AlignmentGeometry begin = AlignmentGeometry.lerp(
-          linear?.begin ?? Alignment.topLeft,
-          Alignment.topRight,
-          t * 0.12,
-        ) ?? Alignment.topLeft;
-        final AlignmentGeometry end = AlignmentGeometry.lerp(
-          linear?.end ?? Alignment.bottomRight,
-          Alignment.bottomLeft,
-          t * 0.12,
-        ) ?? Alignment.bottomRight;
-        return Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: begin,
-              end: end,
-              colors: colors,
-            ),
+    final AlignmentGeometry begin = AlignmentGeometry.lerp(
+      linear?.begin ?? Alignment.topLeft,
+      Alignment.topRight,
+      _t * 0.12,
+    ) ?? Alignment.topLeft;
+    final AlignmentGeometry end = AlignmentGeometry.lerp(
+      linear?.end ?? Alignment.bottomRight,
+      Alignment.bottomLeft,
+      _t * 0.12,
+    ) ?? Alignment.bottomRight;
+    return RepaintBoundary(
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: begin,
+            end: end,
+            colors: colors,
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }
