@@ -22,7 +22,6 @@ import 'package:flauncher/custom_traversal_policy.dart';
 import 'package:flauncher/providers/apps_service.dart';
 import 'package:flauncher/providers/launcher_state.dart';
 import 'package:flauncher/providers/wallpaper_service.dart';
-import 'package:flauncher/widgets/animated_gradient_background.dart';
 import 'package:flauncher/widgets/wallpaper_video_background.dart';
 import 'package:flauncher/widgets/apps_grid.dart';
 import 'package:flauncher/widgets/category_row.dart';
@@ -160,12 +159,15 @@ class _FLauncherState extends State<FLauncher> {
     final aerialAsset = wallpaperService.aerialAssetPath;
     final videoFile = wallpaperService.wallpaperVideoFile;
     if (aerialUrl != null || aerialAsset != null || videoFile != null) {
-      // Animated gradient under the video: while the clip loads (or if
-      // the decoder fails) the home shows a moving gradient, never black.
+      // Static gradient under the video: while the clip loads (or if
+      // the decoder fails) the home shows the gradient, never black.
       background = Stack(
         fit: StackFit.expand,
         children: [
-          AnimatedGradientBackground(key: const Key("background_animated"), gradient: wallpaperService.gradient.gradient),
+          Container(
+            key: const Key("background"),
+            decoration: BoxDecoration(gradient: wallpaperService.gradient.gradient),
+          ),
           WallpaperVideoBackground(
             url: aerialUrl,
             asset: aerialAsset,
@@ -184,10 +186,10 @@ class _FLauncherState extends State<FLauncher> {
         width: physicalSize.width
       );
     } else {
-      // Default background: the launcher gradient, animated (slow drift).
-      background = AnimatedGradientBackground(
-        key: const Key("background_animated"),
-        gradient: wallpaperService.gradient.gradient,
+      // Default background: the launcher gradient, static.
+      background = Container(
+        key: const Key("background"),
+        decoration: BoxDecoration(gradient: wallpaperService.gradient.gradient),
       );
     }
 
