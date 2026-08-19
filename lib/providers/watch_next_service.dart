@@ -150,8 +150,12 @@ class WatchNextService extends ChangeNotifier {
 
   Future<bool> launch(WatchNextProgram program) async {
     if (program.intentUri.isNotEmpty) {
-      return await _channel.launchWatchNextProgram(program.intentUri);
-    } else if (program.packageName.isNotEmpty) {
+      final launched = await _channel.launchWatchNextProgram(program.intentUri);
+      if (launched) return true;
+      // Intent launch failed (unsupported scheme / parse error) — fall back
+      // to launching the owning app.
+    }
+    if (program.packageName.isNotEmpty) {
       try {
         await _channel.launchApp(program.packageName);
         return true;

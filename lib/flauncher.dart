@@ -186,33 +186,39 @@ class _FLauncherState extends State<FLauncher> {
         width: physicalSize.width
       );
     } else {
-      // Default background: the launcher gradient, static.
-      background = Container(
-        key: const Key("background"),
-        decoration: BoxDecoration(gradient: wallpaperService.gradient.gradient),
-      );
+      // Default background: flat black — no gradient, no overlay layers.
+      // (The user found the gradient/overlay stack heavy on the box.)
+      background = const ColoredBox(color: Colors.black);
     }
+
+    final bool needsReadabilityOverlay =
+        wallpaperService.wallpaper != null ||
+        aerialUrl != null ||
+        aerialAsset != null ||
+        videoFile != null;
 
     return Stack(
       fit: StackFit.expand,
       children: [
         background,
-        // Uniform 50% dark layer over the background (user request) — keeps
-        // aerial/video wallpapers readable behind the app grid.
-        const ColoredBox(color: Color(0x80000000)), // black @ 50%
-        DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.black.withOpacity(0.35),
-                Colors.black.withOpacity(0.15),
-                Colors.black.withOpacity(0.45),
-              ],
+        if (needsReadabilityOverlay) ...[
+          // Uniform 50% dark layer — keeps image/video wallpapers readable
+          // behind the app grid.
+          const ColoredBox(color: Color(0x80000000)), // black @ 50%
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withOpacity(0.35),
+                  Colors.black.withOpacity(0.15),
+                  Colors.black.withOpacity(0.45),
+                ],
+              ),
             ),
           ),
-        ),
+        ],
       ],
     );
   }

@@ -1214,19 +1214,15 @@ public class MainActivity extends FlutterActivity {
         if (intentUri == null || intentUri.isEmpty()) {
             return false;
         }
-        // Security: only allow safe URI schemes
-        String lower = intentUri.toLowerCase();
-        if (!lower.startsWith("intent://") && !lower.startsWith("https://") &&
-            !lower.startsWith("http://") && !lower.startsWith("content://")) {
-            return false;
-        }
         try {
             Intent intent = Intent.parseUri(intentUri, Intent.URI_INTENT_SCHEME);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            // Best-effort: the Dart side falls back to launching the owning
+            // app by package name when this returns false.
+            android.util.Log.w("MainActivity", "launchWatchNextProgram failed for: " + intentUri, e);
             return false;
         }
     }

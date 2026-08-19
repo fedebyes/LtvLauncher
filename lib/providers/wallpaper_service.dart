@@ -103,10 +103,9 @@ class WallpaperService extends ChangeNotifier {
     _updateTimerState();
     _initialized = true;
     _startAerialRotation();
-    if (!_settingsService.hasAerialWallpaperChoice()) {
-      // First run: default to the bundled 720p set (offline, light on RAM).
-      setAerialWallpaper(aerialClips.first.$1);
-    }
+    // Note: no automatic aerial on first run anymore — the user chose a
+    // video-free launcher (snappy). Aerial can still be enabled manually
+    // from Settings → Wallpaper → Aerial.
   }
 
   void _updateTimerState() {
