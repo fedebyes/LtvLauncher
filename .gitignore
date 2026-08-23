@@ -28,6 +28,9 @@ Desktop.ini
 **/ios/Flutter/.last_build_id
 .dart_tool/
 .flutter-plugins
+
+# Signing (secrets — never commit)
+/local.properties
 .flutter-plugins-dependencies
 .packages
 .pub-cache/
