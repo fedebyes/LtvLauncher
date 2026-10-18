@@ -127,6 +127,15 @@ android {
         targetCompatibility JavaVersion.VERSION_21
     }
 
+    // Build with JDK 21 regardless of the host default. Gradle downloads a
+    // matching toolchain into ~/.gradle/jdks on first use — no root, no
+    // system-wide package install, and the host java stays untouched.
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+    }
+
     namespace 'com.leanbitlab.ltvL'
 
     applicationVariants.all { variant ->

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io' show Platform;
+import 'dart:typed_data';
 import 'package:flutter/widgets.dart';
 import 'package:flauncher/flauncher_channel.dart';
 import '../models/watch_next_program.dart';
@@ -124,6 +125,22 @@ class WatchNextService extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<bool> checkPermission() async {
     return await _channel.checkWatchNextPermission();
+  }
+
+  /// Fetches poster bytes for a program, with a small in-memory cache so a
+  /// refresh does not re-download every image.
+  final Map<String, Uint8List> _posterCache = {};
+
+  Future<Uint8List?> fetchPoster(String posterArtUri) async {
+    if (posterArtUri.isEmpty) return null;
+    final cached = _posterCache[posterArtUri];
+    if (cached != null) return cached;
+    final bytes = await _channel.getWatchNextPoster(posterArtUri);
+    if (bytes != null && bytes.isNotEmpty) {
+      if (_posterCache.length > 60) _posterCache.clear();
+      _posterCache[posterArtUri] = bytes;
+    }
+    return bytes;
   }
 
   Future<bool> requestPermission() async {

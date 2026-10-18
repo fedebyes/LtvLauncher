@@ -260,6 +260,19 @@ class FLauncherChannel {
     }
   }
 
+  /// Fetches poster/thumbnail bytes for a Watch Next program.
+  /// The URI may be an http(s) URL (Jellyfin/Prime) or a content:// URI —
+  /// the native side handles both.
+  Future<Uint8List?> getWatchNextPoster(String posterArtUri) async {
+    try {
+      final Uint8List? bytes =
+          await _methodChannel.invokeMethod("getWatchNextPoster", {"posterArtUri": posterArtUri});
+      return bytes;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<bool> checkWatchNextPermission() async {
     try {
       final bool? allowed = await _methodChannel.invokeMethod<bool>("checkWatchNextPermission");

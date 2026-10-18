@@ -189,6 +189,15 @@ public class MainActivity extends FlutterActivity {
                         result.error("INVALID_ARGUMENT", "Missing id", null);
                     }
                 }
+                case "getWatchNextPoster" -> {
+                    String posterArtUri = call.argument("posterArtUri");
+                    final MethodChannel.Result posterResult = result;
+                    new Thread(() -> {
+                        byte[] bytes = getWatchNextPoster(posterArtUri);
+                        new Handler(Looper.getMainLooper())
+                            .post(() -> posterResult.success(bytes));
+                    }).start();
+                }
                 case "launchWatchNextProgram" -> {
                     String intentUri = call.argument("intentUri");
                     result.success(launchWatchNextProgram(intentUri));
@@ -1418,6 +1427,56 @@ public class MainActivity extends FlutterActivity {
             e.printStackTrace();
             return false;
         }
+    }
+
+    private byte[] getWatchNextPoster(String posterArtUri) {
+        if (posterArtUri == null || posterArtUri.isEmpty()) {
+            return null;
+        }
+        try {
+            Uri uri = Uri.parse(posterArtUri);
+            String scheme = uri.getScheme();
+            if ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme)) {
+                // Remote posters (Jellyfin/YouTube/Prime): ContentResolver cannot
+                // open arbitrary URLs, so fetch over HTTP.
+                java.net.HttpURLConnection connection =
+                    (java.net.HttpURLConnection) new java.net.URL(posterArtUri).openConnection();
+                connection.setConnectTimeout(8000);
+                connection.setReadTimeout(8000);
+                connection.setInstanceFollowRedirects(true);
+                connection.setRequestProperty("User-Agent", "Mozilla/5.0");
+                try {
+                    if (connection.getResponseCode() != 200) {
+                        return null;
+                    }
+                    try (java.io.InputStream inputStream = connection.getInputStream()) {
+                        return readAllBytes(inputStream);
+                    }
+                } finally {
+                    connection.disconnect();
+                }
+            } else {
+                try (java.io.InputStream inputStream = getContentResolver().openInputStream(uri)) {
+                    if (inputStream != null) {
+                        return readAllBytes(inputStream);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Poster fetch is best-effort: log, never crash the launcher.
+            android.util.Log.w("MainActivity", "poster fetch failed: " + posterArtUri, e);
+        }
+        return null;
+    }
+
+    private static byte[] readAllBytes(java.io.InputStream inputStream) throws java.io.IOException {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        byte[] buffer = new byte[8192];
+        int bytesRead;
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            outputStream.write(buffer, 0, bytesRead);
+        }
+        return outputStream.toByteArray();
     }
 
     private boolean launchWatchNextProgram(String intentUri) {

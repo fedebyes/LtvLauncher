@@ -180,6 +180,7 @@ class _WatchNextCardState extends State<WatchNextCard> with TickerProviderStateM
   late final FocusNode _focusNode;
   bool _clicked = false;
   Uint8List? _appIconBytes;
+  Uint8List? _posterBytes;
   late final AnimationController _animation = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 1200),
@@ -202,6 +203,7 @@ class _WatchNextCardState extends State<WatchNextCard> with TickerProviderStateM
     _focusNode.addListener(_onFocusChange);
     FocusManager.instance.addHighlightModeListener(_focusHighlightModeChanged);
     _loadAppIcon();
+    _loadPoster();
   }
 
   void _focusHighlightModeChanged(FocusHighlightMode mode) {
@@ -221,11 +223,27 @@ class _WatchNextCardState extends State<WatchNextCard> with TickerProviderStateM
     } catch (_) {}
   }
 
+  Future<void> _loadPoster() async {
+    final uri = widget.program.posterArtUri;
+    if (uri.isEmpty) return;
+    try {
+      final bytes = await widget.watchNextService.fetchPoster(uri);
+      if (mounted && bytes != null && bytes.isNotEmpty) {
+        setState(() => _posterBytes = bytes);
+      }
+    } catch (_) {}
+  }
+
   @override
   void didUpdateWidget(covariant WatchNextCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.program.packageName != widget.program.packageName) {
       _loadAppIcon();
+    }
+    if (oldWidget.program.posterArtUri != widget.program.posterArtUri ||
+        oldWidget.program.id != widget.program.id) {
+      _posterBytes = null;
+      _loadPoster();
     }
   }
 
@@ -565,17 +583,33 @@ class _WatchNextCardState extends State<WatchNextCard> with TickerProviderStateM
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        // Card surface with subtle dark gradient and border
+                        // Poster from Watch Next (behind the gradient scrim)
+                        if (_posterBytes != null)
+                          Positioned.fill(
+                            child: Image.memory(
+                              _posterBytes!,
+                              fit: BoxFit.cover,
+                              gaplessPlayback: true,
+                              filterQuality: FilterQuality.low,
+                            ),
+                          ),
+                        // Card surface: gradient scrim when no poster, darkening
+                        // overlay when a poster is present so text stays readable.
                         Container(
                           decoration: BoxDecoration(
                             borderRadius: borderRadius,
-                            gradient: const LinearGradient(
+                            gradient: LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
-                              colors: [
-                                Color(0xFF141517),
-                                Color(0xFF090A0B),
-                              ],
+                              colors: _posterBytes != null
+                                  ? [
+                                      Colors.black.withOpacity(0.35),
+                                      Colors.black.withOpacity(0.80),
+                                    ]
+                                  : const [
+                                      Color(0xFF141517),
+                                      Color(0xFF090A0B),
+                                    ],
                             ),
                             border: Border.all(
                               color: shouldHighlight ? Colors.transparent : Colors.white.withOpacity(0.06),
